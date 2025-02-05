@@ -16,5 +16,8 @@ class Player:
         else:
             return matching_cards[0]
 
-    def accuse(self, player, cards):
-        return player.response(cards)
+    def accuse(self, player):
+        character_accusation = self.suspect_list[0][0]
+        weapon_accusation = self.suspect_list[1][0]
+        room_accusation = self.suspect_list[2][0]
+        return player.response([character_accusation, weapon_accusation, room_accusation])
