@@ -1,4 +1,5 @@
 import random
+from Player import Player
 
 # Initialize characters, weapons, rooms
 characters = ["Dr. Orchid", "Mr. Green", "Col. Mustard", "Ms. Peacock", "Prof. Plum","Ms. Scarlett"]
@@ -21,13 +22,20 @@ pooled_cards = characters + weapons + rooms
 random.shuffle(pooled_cards)
 
 #Initialize 'player hands'
-print(len(pooled_cards))
+print("Murder cards: ")
+print(murder_character + " with the " + murder_weapon + " in the " + murder_room)
 player_one_hand = pooled_cards[0:6]
 player_two_hand = pooled_cards[6:12]
 player_three_hand = pooled_cards[12:18]
 
-print(player_one_hand)
-print(player_two_hand)
-print(player_three_hand)
 
+
+#Introduce 'suspect list'-- i.e all cards player-one doesn't know about
+suspect_list = [x for x in pooled_cards if x not in player_one_hand]
+
+
+player1 = Player(player_hand = player_one_hand, suspect_list = suspect_list)
+player2 = Player(player_hand = player_two_hand, suspect_list = suspect_list)
+
+print(player1.accuse(player2, ["Col. Mustard", "Drawing Room", "Shovel"]))
 
