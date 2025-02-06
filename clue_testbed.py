@@ -1,3 +1,6 @@
+#goals : play an entire game until the end
+#player array (so can handle accusations and all in the game)
+
 import random
 from Player import Player
 
