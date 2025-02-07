@@ -39,14 +39,43 @@ for i in range(num_players):
     room_suspects = [room for room in rooms if room not in player_rooms]
     players.append(Player(player_hand=[player_characters, player_weapons, player_rooms], suspect_list=[char_suspects, weapon_suspects, room_suspects]))
 
-for player in players:
-    print(player.show_hand())
-    print("suspects")
-    print(player.show_suspect_list())
+
 
 #Initialize 'player hands'
 print("Murder cards: ")
 print(murder_character + " with the " + murder_weapon + " in the " + murder_room)
+
+
+game_over = False
+turn = 0
+
+while not game_over:
+    discard = ""
+    current_player = players[turn % num_players]
+    accusation_index = 1
+    if turn > 1000:
+        game_over = True
+    while accusation_index <= num_players and discard == "":
+        discard = current_player.accuse(players[(turn + accusation_index) % num_players])
+        print("Player " + str((turn % num_players)+1) + " up")
+        print("Current discard: " + discard)
+        print(current_player.suspect_list)
+        accusation_index += 1
+    if discard:
+
+        if discard in current_player.suspect_list[0]:
+            current_player.suspect_list[0].remove(discard)
+        elif discard in current_player.suspect_list[1]:
+            current_player.suspect_list[1].remove(discard)
+        else:
+            current_player.suspect_list[2].remove(discard)
+        turn += 1
+    else:
+        print("Player " + str(turn % num_players) +" won!")
+        game_over = True
+
+
+
 # player_one_hand = pooled_cards[0:6]
 #
 # # Create distinct arrays for each card type
