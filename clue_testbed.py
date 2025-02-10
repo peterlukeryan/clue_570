@@ -53,12 +53,11 @@ while not game_over:
     discard = ""
     current_player = players[turn % num_players]
     accusation_index = 1
-    if turn > 1000:
-        game_over = True
     while accusation_index <= num_players and discard == "":
         discard = current_player.accuse(players[(turn + accusation_index) % num_players])
         print("Player " + str((turn % num_players)+1) + " up")
         print("Current discard: " + discard)
+        print("Player " + str((turn % num_players)+1) +"'s suspects")
         print(current_player.suspect_list)
         accusation_index += 1
     if discard:
@@ -72,6 +71,7 @@ while not game_over:
         turn += 1
     else:
         print("Player " + str(turn % num_players) +" won!")
+
         game_over = True
 
 
