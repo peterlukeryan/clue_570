@@ -1,3 +1,11 @@
+<<<<<<< Updated upstream
+=======
+#goals : instead of accuse method being called we have to signal player turn and then the player decides to accuse or not
+# have a global flag to tell everyone else in game if accuse has been called and on who (and if its the game ending accusation or not)
+# Also each player obj needs to maintain a list of all other players and their hands (deducing live)
+# so then the player class gets to decide who to accuse based on this 
+
+>>>>>>> Stashed changes
 import random
 from Player import Player
 
