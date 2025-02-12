@@ -31,9 +31,21 @@ pooled_cards = new_characters + new_weapons + new_rooms
 
 random.shuffle(pooled_cards)
 
-num_players = 3  #can modify however
+num_players = 6  #can modify however
 hands = [pooled_cards[i::num_players] for i in range(num_players)]  # Distribute cards evenly
 
+# players = []
+# for i in range(num_players):
+#     player_characters = list(set(hands[i]) & set(characters))
+#     player_weapons = list(set(hands[i]) & set(weapons))
+#     player_rooms = list(set(hands[i]) & set(rooms))
+
+#     char_suspects = [character for character in characters if character not in player_characters]
+#     weapon_suspects = [weapon for weapon in weapons if weapon not in player_weapons]
+#     room_suspects = [room for room in rooms if room not in player_rooms]
+#     players.append(Player(player_hand=[player_characters, player_weapons, player_rooms], suspect_list=[char_suspects, weapon_suspects, room_suspects]))
+
+# Initialize players
 players = []
 for i in range(num_players):
     player_characters = list(set(hands[i]) & set(characters))
@@ -43,8 +55,15 @@ for i in range(num_players):
     char_suspects = [character for character in characters if character not in player_characters]
     weapon_suspects = [weapon for weapon in weapons if weapon not in player_weapons]
     room_suspects = [room for room in rooms if room not in player_rooms]
-    players.append(Player(player_hand=[player_characters, player_weapons, player_rooms], suspect_list=[char_suspects, weapon_suspects, room_suspects]))
-
+    player = Player(
+        player_hand=[player_characters, player_weapons, player_rooms],
+        suspect_list=[char_suspects, weapon_suspects, room_suspects],
+        player_id=i + 1  # player ID
+    )
+    players.append(player)
+for player in players:
+    player.other_players = [p for p in players if p.player_id != player.player_id]  # List of other players
+    player.initialize_deduction(players)  # Init deduction
 
 
 #Initialize 'player hands'
@@ -56,28 +75,46 @@ game_over = False
 turn = 0
 
 while not game_over:
-    discard = ""
+    # discard = ""
     current_player = players[turn % num_players]
-    accusation_index = 1
-    while accusation_index <= num_players and discard == "":
-        discard = current_player.accuse(players[(turn + accusation_index) % num_players])
-        print("Player " + str((turn % num_players)+1) + " up")
-        print("Current discard: " + discard)
-        print("Player " + str((turn % num_players)+1) +"'s suspects")
-        print(current_player.suspect_list)
-        accusation_index += 1
-    if discard:
+    # accusation_index = 1
+    # while accusation_index <= num_players and discard == "":
+    #     discard = current_player.accuse(players[(turn + accusation_index) % num_players])
+    #     print("Player " + str((turn % num_players)+1) + " up")
+    #     print("Current discard: " + discard)
+    #     print("Player " + str((turn % num_players)+1) +"'s suspects")
+    #     print(current_player.suspect_list)
+    #     accusation_index += 1
+    # if discard:
 
-        if discard in current_player.suspect_list[0]:
-            current_player.suspect_list[0].remove(discard)
-        elif discard in current_player.suspect_list[1]:
-            current_player.suspect_list[1].remove(discard)
+    #     if discard in current_player.suspect_list[0]:
+    #         current_player.suspect_list[0].remove(discard)
+    #     elif discard in current_player.suspect_list[1]:
+    #         current_player.suspect_list[1].remove(discard)
+    #     else:
+    #         current_player.suspect_list[2].remove(discard)
+    #     turn += 1
+    # else:
+    #     print("Player " + str(turn % num_players) +" won!")
+
+    #     game_over = True
+    print(f"Player {current_player.player_id}'s turn")
+
+    # Player decides whether to accuse or not
+    # Like we wanted?
+    accused_player = current_player.decide_to_accuse()
+    if accused_player:
+        print(f"Player {current_player.player_id} accuses Player {accused_player.player_id}")
+        discard = current_player.accuse(accused_player)
+
+        if discard:
+            print(f"Player {accused_player.player_id} refutes with {discard}")
+            current_player.update_deduction(discard, accused_player)  # Update deduction
+            print(f"Player {current_player.player_id}'s updated deduction for Player {accused_player.player_id}: {current_player.deduction[accused_player.player_id]}")
         else:
-            current_player.suspect_list[2].remove(discard)
-        turn += 1
+            print(f"Player {current_player.player_id} wins! The accusation was correct.")
+            game_over = True
     else:
-        print("Player " + str(turn % num_players) +" won!")
+        print(f"Player {current_player.player_id} chooses not to accuse.")
 
-        game_over = True
-
-
+    turn += 1
