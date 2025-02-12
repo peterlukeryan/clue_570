@@ -19,6 +19,10 @@ murder_character = random.choice(characters)
 murder_weapon = random.choice(weapons)
 murder_room = random.choice(rooms)
 
+print("Murder scenario: ")
+print(murder_character)
+print(murder_weapon)
+print(murder_room)
 
 # Remove murder cards, recombine for 'shuffle'
 new_characters = [c for c in characters if c != murder_character]
@@ -48,42 +52,56 @@ for i in range(num_players):
 
 for player in players:
     print(player.player_map)
-    print("suspects: ")
-    print(player.suspects)
 
-# game_over = False
-# turn = 0
-#
-# while not game_over:
-#     # discard = ""
-#
-#     # accusation_index = 1
-#     # while accusation_index <= num_players and discard == "":
-#     #     discard = current_player.accuse(players[(turn + accusation_index) % num_players])
-#     #     print("Player " + str((turn % num_players)+1) + " up")
-#     #     print("Current discard: " + discard)
-#     #     print("Player " + str((turn % num_players)+1) +"'s suspects")
-#     #     print(current_player.suspect_list)
-#     #     accusation_index += 1
-#     # if discard:
-#
-#     #     if discard in current_player.suspect_list[0]:
-#     #         current_player.suspect_list[0].remove(discard)
-#     #     elif discard in current_player.suspect_list[1]:
-#     #         current_player.suspect_list[1].remove(discard)
-#     #     else:
-#     #         current_player.suspect_list[2].remove(discard)
-#     #     turn += 1
-#     # else:
-#     #     print("Player " + str(turn % num_players) +" won!")
-#
-#     #     game_over = True
-#
-#
-#     # Player decides whether to accuse or not
-#     # Like we wanted?
-#
-#
-#
-#
-#     turn += 1
+
+
+
+print("start game")
+game_over = False
+turn = 0
+
+while not game_over:
+    print(turn)
+    if turn == 200:
+        game_over = True
+    discard = ""
+    current_player = players[turn % num_players]
+    print(current_player.show_hand())
+    # check if current player's suspect list is fully down to the right accusation
+    if len(current_player.suspects[0]) == 1 and len(current_player.suspects[1]) == 1 and len(
+            current_player.suspects[2]) == 1:
+        print("Current player won the game with: " + current_player.suspects[0][0] + " " + current_player.suspects[1][0] + " " + current_player.suspects[2][0])
+        game_over = True
+    accusation_index = 1
+    while accusation_index <= num_players and not discard:
+        accusation_cards = [current_player.suspects[0][0], current_player.suspects[1][0], current_player.suspects[2][0] ]
+        print("Accusation cards:")
+        print(accusation_cards)
+        discard = current_player.accuse(players[(turn + accusation_index) % num_players], accusation_cards)
+        accusation_index += 1
+    if discard:
+        print(discard)
+        player_who_refuted = (turn + accusation_index) % num_players
+        current_player.player_map[player_who_refuted].append(discard)
+
+        if discard in current_player.suspects[0]:
+            current_player.suspects[0].remove(discard)
+        elif discard in current_player.suspects[1]:
+            current_player.suspects[1].remove(discard)
+        else:
+            current_player.suspects[2].remove(discard)
+        print(current_player.show_suspect_list())
+        turn += 1
+    else:
+        if all(card not in current_player.player_map[current_player.player_id] for card in accusation_cards):
+            print("Game over!")
+            game_over = True
+        turn += 1
+
+
+    # Player decides whether to accuse or not
+    # Like we wanted?
+
+
+
+

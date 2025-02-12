@@ -21,7 +21,7 @@ class Player:
         weapon_suspects = [weapon for weapon in weapons if weapon not in player_weapons]
         room_suspects = [room for room in rooms if room not in player_rooms]
 
-        self.suspects = [[char_suspects], [weapon_suspects], [room_suspects]]
+        self.suspects = [char_suspects, weapon_suspects, room_suspects]
 
 
     def show_hand(self):
@@ -31,3 +31,10 @@ class Player:
         return f"Suspect list: {self.suspects}"
 
 
+    def accuse(self, player, cards):
+        return player.respond(cards)
+
+    def respond(self, cards):
+        for card in cards:
+            if card in self.player_map[self.player_id]:
+                return card
