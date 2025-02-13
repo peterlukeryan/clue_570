@@ -1,4 +1,4 @@
-class Player:
+class deducedbluffPlayer:
     def __init__(self, player_id=None, player_map=None):
         self.player_map = player_map if player_map is not None else {}  # player map initializes as dictionary
         self.player_id = player_id  # Now using ids
@@ -28,7 +28,20 @@ class Player:
         return f"Suspect list: {self.suspects}"
 
     def accuse(self, player, cards):
-        return player.respond(cards)
+        # Advanced bluffing: Accuse cards that the player knows another player has
+        known_cards = []
+        for card in cards:
+            for player_id, hand in self.player_map.items():
+                if player_id != self.player_id and card in hand:
+                    known_cards.append(card)
+                    break
+
+        if known_cards:
+            # If the player knows another player has one of the accused cards, accuse it
+            return random.choice(known_cards)
+        else:
+            # If no known cards, proceed with normal accusation
+            return player.respond(cards)
 
     def respond(self, cards):
         for card in cards:
