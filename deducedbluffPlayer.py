@@ -1,9 +1,4 @@
-class Player:
-<<<<<<< Updated upstream
-    def __init__(self, player_hand=None, suspect_list=None):
-        self.player_hand = player_hand if player_hand is not None else [[], [], []]
-        self.suspect_list = suspect_list if suspect_list is not None else [[], [], []]  # Keep list of lists
-=======
+class deducedbluffPlayer:
     def __init__(self, player_id=None, player_map=None):
         self.player_map = player_map if player_map is not None else {}  # player map initializes as dictionary
         self.player_id = player_id  # Now using ids
@@ -25,34 +20,28 @@ class Player:
         room_suspects = [room for room in rooms if room not in player_rooms]
 
         self.suspects = [char_suspects, weapon_suspects, room_suspects]
->>>>>>> Stashed changes
 
     def show_hand(self):
-        return f"Player's hand: {self.player_hand}"
+        return f"Player's hand: {self.player_map[self.player_id]}"
 
     def show_suspect_list(self):
-        return f"Suspect list: {self.suspect_list}"
+        return f"Suspect list: {self.suspects}"
 
-<<<<<<< Updated upstream
-    def response(self, accused_cards):
-        # Instead of using set(self.player_hand), check membership in each inner list
-        matching_cards = [card for category in self.player_hand for card in category if card in accused_cards]
-
-        if not matching_cards:
-            return ""
-        else:
-            print(f"Character refutes with {matching_cards[0]}")
-            return matching_cards[0]
-
-    def accuse(self, player):
-        character_accusation = self.suspect_list[0][0]
-        weapon_accusation = self.suspect_list[1][0]
-        room_accusation = self.suspect_list[2][0]
-        print(f"Player accuses with {character_accusation} {weapon_accusation} {room_accusation}")
-        return player.response([character_accusation, weapon_accusation, room_accusation])
-=======
     def accuse(self, player, cards):
-        return player.respond(cards)
+        # Advanced bluffing: Accuse cards that the player knows another player has
+        known_cards = []
+        for card in cards:
+            for player_id, hand in self.player_map.items():
+                if player_id != self.player_id and card in hand:
+                    known_cards.append(card)
+                    break
+
+        if known_cards:
+            # If the player knows another player has one of the accused cards, accuse it
+            return random.choice(known_cards)
+        else:
+            # If no known cards, proceed with normal accusation
+            return player.respond(cards)
 
     def respond(self, cards):
         for card in cards:
@@ -85,4 +74,3 @@ class Player:
             print("Game over!")
             return True
         return False
->>>>>>> Stashed changes
