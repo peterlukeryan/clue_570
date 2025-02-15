@@ -6,6 +6,7 @@
 
 import random
 from Player import Player
+from Board import Board 
 
 # Initialize characters, weapons, rooms
 characters = ["Dr. Orchid", "Mr. Green", "Col. Mustard", "Ms. Peacock", "Prof. Plum","Ms. Scarlett"]
@@ -45,6 +46,7 @@ for i in range(num_players):
     room_suspects = [room for room in rooms if room not in player_rooms]
     players.append(Player(player_hand=[player_characters, player_weapons, player_rooms], suspect_list=[char_suspects, weapon_suspects, room_suspects]))
 
+board = Board()
 
 
 #Initialize 'player hands'
@@ -80,4 +82,4 @@ while not game_over:
 
         game_over = True
 
-
+board.find_doors()
