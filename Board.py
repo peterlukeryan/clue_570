@@ -7,6 +7,7 @@ class Tile:
         self.x = x
         self.y = y
         self.left = self.right = self.top = self.bot = self.OPEN
+        self.visited = False
 
         # setting the boundaries of the board
         if(x == 0):
@@ -19,6 +20,43 @@ class Tile:
             self.top = self.WALL
 
 class Board:
+    def test_board(self):
+        tile = self.starting_points[0]
+        tile.visited = True
+        max_visits = 216
+        visited = self.iterate_board(tile)
+        print(f"starting at ({tile.x},{tile.y})")
+        print(f"visited -> {visited}")
+        print(f"total counted -> {max_visits}")
+    
+    def iterate_board(self, tile):
+        tile.visited = True
+        x = tile.x
+        y = tile.y
+        visited = 1
+        if(tile.top == Tile.OPEN and self.board[x][y+1].visited == False):
+            visited += self.iterate_board(self.board[x][y+1])
+        if(tile.top == Tile.DOOR):
+            visited += 1
+            print(f"({x},{y}) found door to the top")
+        if(tile.bot == Tile.OPEN and self.board[x][y-1].visited == False):
+            visited += self.iterate_board(self.board[x][y-1])
+        if(tile.bot == Tile.DOOR):
+            print(f"({x},{y}) found door to the bot")
+            visited += 1
+        if(tile.left == Tile.OPEN and self.board[x-1][y].visited == False):
+            visited += self.iterate_board(self.board[x-1][y])
+        if(tile.left == Tile.DOOR):
+            visited += 1
+            print(f"({x},{y}) found door to the left")
+        if(tile.right == Tile.OPEN and self.board[x+1][y].visited == False):
+            visited += self.iterate_board(self.board[x+1][y])
+        if(tile.right == Tile.DOOR):
+            visited += 1
+            print(f"({x},{y}) found door to the right")
+        return visited 
+            
+            
 
     def find_doors(self):
         count = 0
@@ -38,7 +76,11 @@ class Board:
                     print(f"tile : ({x}, {y}) -> door bot")
                     count += 1
         print(f"count -> {count}")
+        print(f"count -> {len(self.starting_points)}")
+
+        
     def __init__(self):
+        self.starting_points = []
         self.board = [[None for _ in range(25)] for _ in range(25)]
         for x in range(25):
             for y in range(25):
@@ -225,11 +267,14 @@ class Board:
                 self.board[x][7].bot = Tile.WALL
              #starting point?
         self.board[24][7].right = self.board[24][7].top = Tile.WALL
+        self.starting_points.append(self.board[24][7])
         self.board[1][7].left = Tile.WALL
 
         for x in range(5):
             self.board[x][6].bot = Tile.WALL
+        # starting point?
         self.board[0][6].left = self.board[0][6].top = Tile.WALL
+        self.starting_points.append(self.board[0][6])
 
         self.board[5][5].left = Tile.WALL
         #conservatory door
@@ -242,9 +287,11 @@ class Board:
         self.board[9][1].top = self.board[9][1].right = Tile.WALL
         # starting point?
         self.board[9][0].bot = self.board[9][0].right = self.board[9][0].left = Tile.WALL
+        self.starting_points.append(self.board[9][0])
 
         #starting point? 
         self.board[15][0].left = self.board[15][0].bot = self.board[15][0].right = Tile.WALL
+        self.starting_points.append(self.board[15][0])
         self.board[15][1].left = self.board[15][1].top = Tile.WALL
         self.board[16][1].bot = self.board[16][1].top = Tile.WALL
         self.board[17][1].bot = self.board[17][1].right = Tile.WALL
@@ -289,6 +336,7 @@ class Board:
             self.board[7][y].left = Tile.WALL
          # starting point?
         self.board[7][24].top = self.board[7][24].right = Tile.WALL
+        self.starting_points.append(self.board[7][24])
 
 
         for x in range(1, 7):
@@ -301,6 +349,7 @@ class Board:
             self.board[x][18].bot = Tile.WALL
         # starting point
         self.board[0][18].left = self.board[0][18].top = Tile.WALL
+        self.starting_points.append(self.board[0][18])
         self.board[7][17].left = self.board[7][17].bot = Tile.WALL
         self.board[7][13].top = self.board[7][13].left = Tile.WALL
 
@@ -336,6 +385,7 @@ class Board:
             self.board[17][y].right = Tile.WALL
         #starting point?
         self.board[17][24].top = self.board[17][24].left = Tile.WALL
+        self.starting_points.append(self.board[17][24])
         #lounge door
         self.board[17][19].right = Tile.DOOR
 
@@ -344,6 +394,7 @@ class Board:
         self.board[23][18].right = Tile.WALL
         #starting point?
         self.board[24][17].right = self.board[24][17].top = self.board[24][17].bot = Tile.WALL
+        self.starting_points.append(self.board[24][17])
 
         for x in range(17, 24):
             self.board[x][16].bot = Tile.WALL

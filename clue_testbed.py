@@ -82,4 +82,5 @@ while not game_over:
 
         game_over = True
 
-board.find_doors()
+#board.find_doors()
+#board.test_board()
