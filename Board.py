@@ -21,13 +21,18 @@ class Tile:
 
 class Board:
     def test_board(self):
-        tile = self.starting_points[0]
-        tile.visited = True
         max_visits = 216
-        visited = self.iterate_board(tile)
-        print(f"starting at ({tile.x},{tile.y})")
-        print(f"visited -> {visited}")
-        print(f"total counted -> {max_visits}")
+        for x in self.starting_points:
+            tile = x
+        #tile = self.starting_points[0]
+            tile.visited = True
+            visited = self.iterate_board(tile)
+            print(f"starting at ({tile.x},{tile.y})")
+            print(f"visited -> {visited}")
+            print(f"total counted -> {max_visits}")
+            for x in self.board:
+                for y in x:
+                    y.visited = False
     
     def iterate_board(self, tile):
         tile.visited = True
