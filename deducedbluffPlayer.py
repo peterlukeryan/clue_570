@@ -1,3 +1,5 @@
+#one of the deduced cards to bluff with is the shortest list in the suspects, annd then just use one rando card from that
+
 class deducedbluffPlayer:
     def __init__(self, player_id=None, player_map=None):
         self.player_map = player_map if player_map is not None else {}  # player map initializes as dictionary

@@ -46,7 +46,8 @@ class bluffPlayer:
     def make_accusation(self, players, turn, num_players):
         accusation_index = 1
         while accusation_index <= num_players:
-            accusation_cards = [self.suspects[0][0], self.suspects[1][0], self.suspects[2][0]]
+            accusation_cards = [self.suspects[0][0], self.suspects[1][0], self.suspects[2][0]] #hardcode one of the cards from my own hand in
+            # that is the proposed fix
             print("Accusation cards:")
             print(accusation_cards)
             discard = self.accuse(players[(turn + accusation_index) % num_players], accusation_cards)
