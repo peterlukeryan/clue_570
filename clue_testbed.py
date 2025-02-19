@@ -1,7 +1,7 @@
 #goals : instead of accuse method being called we have to signal player turn and then the player decides to accuse or not
 # have a global flag to tell everyone else in game if accuse has been called and on who (and if its the game ending accusation or not)
 # Also each player obj needs to maintain a list of all other players and their hands (deducing live)
- main
+
 
 
 import random
@@ -67,6 +67,8 @@ while not game_over:
     discard = ""
     current_player = players[turn % num_players]
     print(current_player.show_hand())
+    print("Player's map:")
+    print(current_player.player_map)
     # check if current player's suspect list is fully down to the right accusation
     if len(current_player.suspects[0]) == 1 and len(current_player.suspects[1]) == 1 and len(
             current_player.suspects[2]) == 1:
@@ -81,9 +83,11 @@ while not game_over:
         accusation_index += 1
     if discard:
         print(discard)
-        player_who_refuted = (turn + accusation_index) % num_players
+        player_who_refuted = (turn + accusation_index -1) % num_players
+        print("This player refuted: " + str(player_who_refuted))
         current_player.player_map[player_who_refuted].append(discard)
-
+        print("New map")
+        print(current_player.player_map)
         if discard in current_player.suspects[0]:
             current_player.suspects[0].remove(discard)
         elif discard in current_player.suspects[1]:
