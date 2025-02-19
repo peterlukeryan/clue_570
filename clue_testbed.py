@@ -88,6 +88,41 @@ while not game_over:
         current_player.player_map[player_who_refuted].append(discard)
         print("New map")
         print(current_player.player_map)
+        # not first players turn, meaning first player can possibly deduce
+        if turn % num_players != 0:
+            known_accusation_cards = []
+            print("Map state")
+            print(players[0].player_map)
+            for id in players[0].player_map:
+                for card in accusation_cards:
+                    if card in players[0].player_map[id] and id != player_who_refuted:
+                        print(card + " is in my map.")
+                        known_accusation_cards.append(card)
+
+            if len(known_accusation_cards) == 2:
+                print("Suspect list before deduction: ")
+                print(players[0].show_suspect_list())
+                deduced_card = ""
+
+                for card in accusation_cards:
+                    if card not in known_accusation_cards:
+                        deduced_card = card
+                        print("Actual discard: ")
+                        print(discard)
+                        print("Player one deduced this card: ")
+                        print(deduced_card)
+                players[0].player_map[player_who_refuted].append(deduced_card)
+                print(players[0].player_map)
+                if deduced_card in players[0].suspects[0]:
+                    players[0].suspects[0].remove(deduced_card)
+                elif deduced_card in players[0].suspects[1]:
+                    players[0].suspects[1].remove(deduced_card)
+                elif deduced_card in players[0].suspects[2]:
+                    players[0].suspects[2].remove(deduced_card)
+                print("Suspect list after deduction: ")
+                print(players[0].show_suspect_list())
+
+
         if discard in current_player.suspects[0]:
             current_player.suspects[0].remove(discard)
         elif discard in current_player.suspects[1]:
