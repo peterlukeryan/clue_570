@@ -1,7 +1,7 @@
 #goals : instead of accuse method being called we have to signal player turn and then the player decides to accuse or not
 # have a global flag to tell everyone else in game if accuse has been called and on who (and if its the game ending accusation or not)
 # Also each player obj needs to maintain a list of all other players and their hands (deducing live)
- main
+
 
 
 import random
@@ -61,12 +61,13 @@ game_over = False
 turn = 0
 
 while not game_over:
-    print(turn)
+    print (turn % num_players)
     if turn == 200:
         game_over = True
     discard = ""
     current_player = players[turn % num_players]
-    print(current_player.show_hand())
+    print("Player's map")
+    print(current_player.player_map)
     # check if current player's suspect list is fully down to the right accusation
     if len(current_player.suspects[0]) == 1 and len(current_player.suspects[1]) == 1 and len(
             current_player.suspects[2]) == 1:
@@ -74,6 +75,7 @@ while not game_over:
         game_over = True
     accusation_index = 1
     while accusation_index <= num_players and not discard:
+        current_player.show_suspect_list()
         accusation_cards = [current_player.suspects[0][0], current_player.suspects[1][0], current_player.suspects[2][0] ]
         print("Accusation cards:")
         print(accusation_cards)
@@ -81,8 +83,49 @@ while not game_over:
         accusation_index += 1
     if discard:
         print(discard)
+        print("Player's map before discard: ")
+        print(current_player.player_map)
         player_who_refuted = (turn + accusation_index) % num_players
+        print("Player's map after discard: ")
         current_player.player_map[player_who_refuted].append(discard)
+        print(current_player.player_map)
+
+
+        # Logic to deduce cards-- currently only first player makes deductions for testing purposes
+
+        # not first players turn, meaning first player can possibly deduce
+        if turn % num_players != 0:
+            known_accusation_cards = []
+            print("Map state")
+            print(players[0].player_map)
+            for id in players[0].player_map:
+                 for card in accusation_cards:
+                    if card in players[0].player_map[id] and id != player_who_refuted:
+                        print(card + " is in my map.")
+                        known_accusation_cards.append(card)
+
+            if len(known_accusation_cards) == 2:
+                print("Suspect list before deduction: ")
+                print(players[0].show_suspect_list())
+                deduced_card = ""
+
+                for card in accusation_cards:
+                    if card not in known_accusation_cards:
+                        deduced_card = card
+                        print("Actual discard: ")
+                        print(discard)
+                        print("Player one deduced this card: ")
+                        print(deduced_card)
+                players[0].player_map[player_who_refuted].append(deduced_card)
+                print(players[0].player_map)
+                if deduced_card in players[0].suspects[0]:
+                    players[0].suspects[0].remove(deduced_card)
+                elif deduced_card in players[0].suspects[1]:
+                    players[0].suspects[1].remove(deduced_card)
+                elif deduced_card in players[0].suspects[2]:
+                    players[0].suspects[2].remove(deduced_card)
+                print("Suspect list after deduction: ")
+                print(players[0].show_suspect_list())
 
         if discard in current_player.suspects[0]:
             current_player.suspects[0].remove(discard)
@@ -95,6 +138,10 @@ while not game_over:
     else:
         if all(card not in current_player.player_map[current_player.player_id] for card in accusation_cards):
             print("Game over!")
+            print("Stats: ")
+            print(current_player.show_hand())
+            print(current_player.show_suspect_list())
+
             game_over = True
         turn += 1
 
