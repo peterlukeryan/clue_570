@@ -9,8 +9,6 @@ weapons = ["Wrench", "Rope", "Steel Bar", "Knife", "Shovel", "Razor"]
 rooms = ["Hall", "Piano Room", "Greenhouse", "Study", "Billiard Room", "Bedroom", "Dining Room", "Library", "Kitchen"]
 
 # Randomly select three cards, from each type-- as 'murder cards'
-murder_cards = []
-
 murder_character = random.choice(characters)
 murder_weapon = random.choice(weapons)
 murder_room = random.choice(rooms)
@@ -26,7 +24,6 @@ new_weapons = [w for w in weapons if w != murder_weapon]
 new_rooms = [r for r in rooms if r != murder_room]
 
 pooled_cards = new_characters + new_weapons + new_rooms
-
 random.shuffle(pooled_cards)
 
 num_players = 6  # can modify however
@@ -66,15 +63,19 @@ game_over = False
 turn = 0
 
 while not game_over:
-    print(turn)
-    if turn == 200:
-        game_over = True
     current_player = players[turn % num_players]
+    # Print the bot's name (class name) and its turn
+    print(f"Turn {turn}: {current_player.__class__.__name__}'s turn")
     print(current_player.show_hand())
-    # check if current player's suspect list is fully down to the right accusation
-    if len(current_player.suspects[0]) == 1 and len(current_player.suspects[1]) == 1 and len(
-            current_player.suspects[2]) == 1:
-        print("Current player won the game with: " + current_player.suspects[0][0] + " " + current_player.suspects[1][0] + " " + current_player.suspects[2][0])
+
+    if turn == 200:
+        print("Max turns reached. Game over!")
+        game_over = True
+        break
+
+    # Check if current player's suspect list is fully down to the right accusation
+    if len(current_player.suspects[0]) == 1 and len(current_player.suspects[1]) == 1 and len(current_player.suspects[2]) == 1:
+        print(f"{current_player.__class__.__name__} won the game with: {current_player.suspects[0][0]} {current_player.suspects[1][0]} {current_player.suspects[2][0]}")
         game_over = True
     else:
         game_over = current_player.make_accusation(players, turn, num_players)
