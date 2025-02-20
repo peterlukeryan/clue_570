@@ -1,3 +1,4 @@
+import random
 class bluffPlayer:
     def __init__(self, player_id=None, player_map=None):
         self.player_map = player_map if player_map is not None else {}  # player map initializes as dictionary
@@ -42,15 +43,41 @@ class bluffPlayer:
             if card in self.player_map[self.player_id]:
                 return card
         return None
+    
+    def get_one_of_my_cards(self):
+        characters = ["Dr. Orchid", "Mr. Green", "Col. Mustard", "Ms. Peacock", "Prof. Plum", "Ms. Scarlett"]
+        weapons = ["Wrench", "Rope", "Steel Bar", "Knife", "Shovel", "Razor"]
+        rooms = ["Hall", "Piano Room", "Greenhouse", "Study", "Billiard Room", "Bedroom", "Dining Room", "Library",
+                 "Kitchen"]
+        
+        card = random.choice(self.player_map[self.player_id])
+        if card in characters:
+            print("Character card", card)
+            return [0, card]
+        elif card in weapons:
+            print("Weapon card", card)    
+            return [1, card]
+        else:
+            print("Room card", card)
+            return [2, card]
 
     def make_accusation(self, players, turn, num_players):
         accusation_index = 1
         while accusation_index <= num_players:
-            accusation_cards = [self.suspects[0][0], self.suspects[1][0], self.suspects[2][0]] #hardcode one of the cards from my own hand in
+            # accusation_cards = [self.suspects[0][0], self.suspects[1][0], self.suspects[2][0]] #hardcode one of the cards from my own hand in
             # that is the proposed fix
-            print("Accusation cards:")
+            bluff_card = self.get_one_of_my_cards()
+            accusation_cards = None
+            if bluff_card[0] == 0:
+                accusation_cards = [bluff_card[1], self.suspects[1][0], self.suspects[2][0]]
+            elif bluff_card[0] == 1:
+                accusation_cards = [self.suspects[0][0], bluff_card[1], self.suspects[2][0]]
+            else:
+                accusation_cards = [self.suspects[0][0], self.suspects[1][0], bluff_card[1]]
+            
+            print( "BLUFF Accusation cards: -----------------")
             print(accusation_cards)
-            discard = self.accuse(players[(turn + accusation_index) % num_players], accusation_cards)
+            discard = self.accuse(players[(turn + accusation_index) % num_players ], accusation_cards)
             if discard:
                 print(discard)
                 player_who_refuted = (turn + accusation_index) % num_players
