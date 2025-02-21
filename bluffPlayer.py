@@ -30,13 +30,13 @@ class bluffPlayer:
 
     def accuse(self, player, cards):
         # Check if the player wants to bluff (accuse cards they already have)
-        bluff_cards = [card for card in cards if card in self.player_map[self.player_id]]
-        if bluff_cards:
-            # If bluffing, accuse one of the cards they already have
-            return random.choice(bluff_cards)
-        else:
+        # bluff_cards = [card for card in cards if card in self.player_map[self.player_id]]
+        # if bluff_cards:
+        #     # If bluffing, accuse one of the cards they already have
+        #     return random.choice(bluff_cards)
+        # else:
             # If not bluffing, proceed with normal accusation
-            return player.respond(cards)
+        return player.respond(cards)
 
     def respond(self, cards):
         for card in cards:
@@ -63,21 +63,26 @@ class bluffPlayer:
 
     def make_accusation(self, players, turn, num_players):
         accusation_index = 1
-        while accusation_index <= num_players:
-            # accusation_cards = [self.suspects[0][0], self.suspects[1][0], self.suspects[2][0]] #hardcode one of the cards from my own hand in
-            # that is the proposed fix
-            bluff_card = self.get_one_of_my_cards()
-            accusation_cards = None
-            if bluff_card[0] == 0:
-                accusation_cards = [bluff_card[1], self.suspects[1][0], self.suspects[2][0]]
-            elif bluff_card[0] == 1:
-                accusation_cards = [self.suspects[0][0], bluff_card[1], self.suspects[2][0]]
-            else:
-                accusation_cards = [self.suspects[0][0], self.suspects[1][0], bluff_card[1]]
-            
-            print( "BLUFF Accusation cards: -----------------")
-            print(accusation_cards)
-            discard = self.accuse(players[(turn + accusation_index) % num_players ], accusation_cards)
+        bluff_card = self.get_one_of_my_cards()
+
+        accusation_cards = None
+        if bluff_card[0] == 0:
+            accusation_cards = [bluff_card[1], self.suspects[1][0], self.suspects[2][0]]
+        elif bluff_card[0] == 1:
+            accusation_cards = [self.suspects[0][0], bluff_card[1], self.suspects[2][0]]
+        else:
+            accusation_cards = [self.suspects[0][0], self.suspects[1][0], bluff_card[1]]
+        
+        print( "Accusation cards: ----------------- BLUFF AGENT")
+        print(accusation_cards)
+
+        while accusation_index <= num_players:  
+
+            discard = None
+            num = (turn + accusation_index) % num_players
+            if num != self.player_id:
+                discard = self.accuse(players[num], accusation_cards)
+                
             if discard:
                 print(discard)
                 player_who_refuted = (turn + accusation_index) % num_players
@@ -93,6 +98,6 @@ class bluffPlayer:
                 return False
             accusation_index += 1
         if all(card not in self.player_map[self.player_id] for card in accusation_cards):
-            print("Game over!")
+            print("Game over! Bluff Agent Won")
             return True
         return False
