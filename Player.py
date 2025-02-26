@@ -38,3 +38,7 @@ class Player:
         for card in cards:
             if card in self.player_map[self.player_id]:
                 return card
+
+    def final_accusation(self):
+       accusation = [choice[0] for choice in self.suspects]
+       return accusation
