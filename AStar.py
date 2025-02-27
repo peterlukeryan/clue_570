@@ -24,13 +24,13 @@ def get_neighbors(node, grid):
     tile = grid[x][y]
     OPEN = 2
     DOOR = 3
-    if(tile.top == OPEN or tile.top == DOOR):
+    if(tile.visited == False and tile.top == OPEN or tile.top == DOOR):
         neighbors.append((0, 1))
-    if(tile.bot == OPEN or tile.bot == DOOR):
+    if(tile.visited == False and tile.bot == OPEN or tile.bot == DOOR):
         neighbors.append((0, -1))
-    if(tile.left == OPEN or tile.left == DOOR):
+    if(tile.visited == False and tile.left == OPEN or tile.left == DOOR):
         neighbors.append((-1, 0))
-    if(tile.right == OPEN or tile.right == DOOR):
+    if(tile.visited == False and tile.right == OPEN or tile.right == DOOR):
         neighbors.append((1, 0))
     return neighbors
 
