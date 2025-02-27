@@ -3,9 +3,12 @@
 # Also each player obj needs to maintain a list of all other players and their hands (deducing live)
 # so then the player class gets to decide who to accuse based on this 
 
+# This is main. main is not main
 
 import random
 from Player import Player
+from game_metrics import Metrics
+from time import time
 
 # Initialize characters, weapons, rooms
 characters = ["Dr. Orchid", "Mr. Green", "Col. Mustard", "Ms. Peacock", "Prof. Plum","Ms. Scarlett"]
@@ -52,22 +55,36 @@ print("Murder cards: ")
 print(murder_character + " with the " + murder_weapon + " in the " + murder_room)
 
 
+metrics = Metrics()
+metrics.start_timer()
+
+game_over = False
+turn = 0
+
 game_over = False
 turn = 0
 
 while not game_over:
+    turn_start_time = time()
     discard = ""
     current_player = players[turn % num_players]
     accusation_index = 1
+
     while accusation_index <= num_players and discard == "":
         discard = current_player.accuse(players[(turn + accusation_index) % num_players])
-        print("Player " + str((turn % num_players)+1) + " up")
+
+        # Altered bluffing logic; tracking if bluffing occurred
+        is_bluff = random.choice([True, False])  # Replace with actual logic later
+        metrics.record_accusation(current_player, is_bluff)
+        print(f"Player {turn % num_players + 1} is bluffing: {is_bluff}")
+        print("Player " + str((turn % num_players) + 1) + " up")
         print("Current discard: " + discard)
-        print("Player " + str((turn % num_players)+1) +"'s suspects")
+        print("Player " + str((turn % num_players) + 1) + "'s suspects")
         print(current_player.suspect_list)
         accusation_index += 1
-    if discard:
 
+    if discard:
+        # Update logic for removing discarded cards
         if discard in current_player.suspect_list[0]:
             current_player.suspect_list[0].remove(discard)
         elif discard in current_player.suspect_list[1]:
@@ -76,8 +93,16 @@ while not game_over:
             current_player.suspect_list[2].remove(discard)
         turn += 1
     else:
-        print("Player " + str(turn % num_players) +" won!")
-
+        # Mark win and break loop
+        print("Player " + str(turn % num_players) + " won!")
+        metrics.record_win(current_player)  # Track wins
         game_over = True
 
+    turn_duration = time() - turn_start_time
+    metrics.record_turn(turn_duration)
+
+# End game and plot metrics
+metrics.end_timer()
+metrics.print_metrics()
+metrics.plot_metrics()
 
