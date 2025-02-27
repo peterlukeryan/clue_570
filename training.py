@@ -11,7 +11,7 @@ weapons = ["Wrench", "Rope", "Steel Bar", "Knife", "Shovel", "Razor"]
 rooms = ["Hall", "Piano Room", "Greenhouse", "Study", "Billiard Room", "Bedroom", "Dining Room", "Library", "Kitchen"]
 
 # Training parameters
-num_episodes = 100000  # Number of games to train the bot
+num_episodes = 1000  # Number of games to train the bot
 num_players = 6  # Total number of players
 
 # Create the RLPlayer instance
