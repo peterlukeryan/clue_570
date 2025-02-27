@@ -87,6 +87,8 @@ class Board:
                     text_rect = text.get_rect(center=((j + 0.5) * cell_size, (i + 0.5) * cell_size))
                     #screen.blit(text, text_rect)
 
+            #pygame.display.flip()
+            screen.blit(pygame.transform.rotate(screen, 90), (0, 0))
             pygame.display.flip()
 
         pygame.quit()
