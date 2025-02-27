@@ -1,13 +1,40 @@
+import pygame
+import random
+import math
+from AStar import a_star 
+
+class Person:
+    RED = (255,0,0)
+    BLUE = (0,0,255)
+    GREEN = (0,255,0)
+    PINK = (255,153,255)
+    colors = [RED, BLUE, GREEN, PINK]
+    color_string = ["RED", "BLUE", "GREEN", "PINK"]
+    def __init__(self, name):
+        self.name = name
+        self.position = None
+        self.color = Person.colors[name] 
+
+    def __str__(self):
+        return f"Player {self.name} is color {Person.color_string[self.name]}"
+
 class Tile:
     WALL = 1
     OPEN = 2
     DOOR = 3
+    YELLOW = (255, 153, 51)
+    WHITE=(255,255,255)
+    BLACK=(0,0,0)
+    BROWN = (222, 184, 135)
+
     def __init__(self, x, y):
+        self.player = None
         self.name = "tile"
         self.x = x
         self.y = y
         self.left = self.right = self.top = self.bot = self.OPEN
         self.visited = False
+        self.color = Tile.YELLOW
 
         # setting the boundaries of the board
         if(x == 0):
@@ -20,6 +47,50 @@ class Tile:
             self.top = self.WALL
 
 class Board:
+
+    def draw_board(self):
+        cell_size = 25 
+        pygame.init()
+        screen = pygame.display.set_mode((25 * cell_size, 25 * cell_size))
+        pygame.display.set_caption("Clue Board")
+
+
+        font = pygame.font.Font(None, 36)
+
+        running = True
+
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            screen.fill(Tile.BLACK)
+
+            for i in range(25):
+                for j in range(25):
+                    tile = self.board[i][j]
+                    color = Tile.YELLOW
+                    outline = 1 
+                    if(tile.name != "tile"):
+                        #if(tile.y == 12):
+                            #print(f"({tile.x},{tile.y})")
+                        color = Tile.BROWN
+                        outline = 2 
+                    if(tile.visited):
+                        color = tile.player.color
+
+                    # color inside of rectangle
+                    pygame.draw.rect(screen, color, (j * cell_size, i * cell_size, cell_size, cell_size), 13)
+                    # color outline
+                    pygame.draw.rect(screen, Tile.BLACK, (j * cell_size, i * cell_size, cell_size, cell_size), outline)
+                    text = font.render(str(self.board[i][j]), True, Tile.BLACK)
+                    text_rect = text.get_rect(center=((j + 0.5) * cell_size, (i + 0.5) * cell_size))
+                    #screen.blit(text, text_rect)
+
+            pygame.display.flip()
+
+        pygame.quit()
+
     def test_board(self):
         max_visits = 216
         for x in self.starting_points:
@@ -60,8 +131,58 @@ class Board:
             visited += 1
             print(f"({x},{y}) found door to the right")
         return visited 
+
+    def roll_dice(self):
+        die1 = random.randint(1,6); 
+        die2 = random.randint(1,6); 
+        return die1 + die2
             
+    def get_path(self, room_name):
+        start = (17,8)
+        #self.board[17][8].visited = True
+        #self.board[17][8].player = self.players[self.current_player] 
+        shortest_path = []
+        goal_doors = self.rooms[room_name]
+        shortest = math.inf
+        if(len(goal_doors) > 1):
+            for door in goal_doors:
+                goal = (door.x, door.y)
+                path = a_star(start, goal, self.board) 
+                if (len(path) < shortest):
+                    shortest_path = path
+                    shortest = len(path)
+            #print(shortest_path)
             
+        else:
+            goal = (goal_doors[0].x, goal_doors[0].y)
+            shortest_path = a_star(start, goal, self.board)
+            #print(shortest_path)
+        return shortest_path
+
+    def take_turn(self, room_name):
+        steps = self.roll_dice()
+        path = self.get_path(room_name)
+
+        # get the current player
+        player = self.players[self.current_player]
+        self.current_player += 1
+        if(self.current_player == len(self.players)):
+            self.current_player = 0
+
+        # slice array to rolled steps 
+        path = path[:steps]
+
+        # get the tile where the player finished
+        tile_coords = path[len(path) - 1]
+        tile = self.board[tile_coords[0]][tile_coords[1]]
+
+        # set the player to its current position on the board
+        tile.player = player
+        tile.visited = True
+        # inside the room 
+        return tile.name == room_name
+
+
 
     def find_doors(self):
         count = 0
@@ -84,12 +205,30 @@ class Board:
         print(f"count -> {len(self.starting_points)}")
 
         
-    def __init__(self):
+    def __init__(self, num_players):
+        self.players = [None for _ in range(num_players)]
+        for i in range(num_players):
+            self.players[i] = Person(i)
+            print(self.players[i])
+        self.current_player = 0
         self.starting_points = []
         self.board = [[None for _ in range(25)] for _ in range(25)]
         for x in range(25):
             for y in range(25):
                 self.board[x][y] = Tile(x, y)
+
+        self.rooms = {
+            "Study"  : [self.board[6][20]],
+            "Hall"   : [self.board[11][18], self.board[12][18], self.board[13][18], self.board[9][19]],
+            "Lounge" : [self.board[18][19]],
+            "Dining Room" : [self.board[18][15], self.board[17][12]],
+            "Kitchen"     : [self.board[19][6]],
+            "Ballroom"    : [self.board[6][5], self.board[15][6], self.board[9][6], self.board[8][5]],
+            "Conservatory" : [self.board[4][4]],
+            "Billiard Room" : [self.board[6][9], self.board[1][11]],
+            "Library"       : [self.board[3][13], self.board[7][15]]
+
+        }
 
         # create conservatory
         room_name = "conservatory"
@@ -130,7 +269,7 @@ class Board:
         #create Library
         room_name = "Library"
         for x in range(1,7):
-            for y in range(14,17):
+            for y in range(13,18):
                 self.board[x][y].name = room_name
         for x in range(1,7):
             self.board[x][13].bot = Tile.WALL
@@ -317,7 +456,8 @@ class Board:
             if(x >= 10 and x <= 14):
                 self.board[x][8].top = Tile.WALL
                 self.board[x][16].bot = Tile.WALL
-            if(x >= 17 and x <= 23):
+            #if(x >= 17 and x <= 23):
+            if(x >= 20 and x <= 23):
                 self.board[x][8].top = Tile.WALL
 
         self.board[23][8].right = Tile.WALL

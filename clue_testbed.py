@@ -46,7 +46,7 @@ for i in range(num_players):
     room_suspects = [room for room in rooms if room not in player_rooms]
     players.append(Player(player_hand=[player_characters, player_weapons, player_rooms], suspect_list=[char_suspects, weapon_suspects, room_suspects]))
 
-board = Board()
+board = Board(num_players)
 
 
 #Initialize 'player hands'
@@ -83,4 +83,7 @@ while not game_over:
         game_over = True
 
 #board.find_doors()
-board.test_board()
+#board.test_board()
+#board.get_path("Hall")
+board.take_turn("Hall")
+board.draw_board()
