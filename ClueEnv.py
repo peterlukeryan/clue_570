@@ -97,12 +97,12 @@ class ClueEnv(gym.Env):
                 player_who_refuted_rl = (self.turn + accusation_index - 1) % self.num_players
                 self.rl_agent.player_map[player_who_refuted_rl].append(rl_discard)
 
-                # if rl_discard in self.rl_agent.suspects[0]:
-                #     self.rl_agent.suspects[0].remove(rl_discard)
-                # elif rl_discard in self.rl_agent.suspects[1]:
-                #     self.rl_agent.suspects[1].remove(rl_discard)
-                # else:
-                #     self.rl_agent.suspects[2].remove(rl_discard)
+                if rl_discard in self.rl_agent.suspects[0]:
+                    self.rl_agent.suspects[0].remove(rl_discard)
+                elif rl_discard in self.rl_agent.suspects[1]:
+                    self.rl_agent.suspects[1].remove(rl_discard)
+                elif rl_discard in self.rl_agent.suspects[2]:
+                    self.rl_agent.suspects[2].remove(rl_discard)
 
             for i in range(1,self.num_players):
                 current_player = self.players[i]
@@ -137,6 +137,13 @@ class ClueEnv(gym.Env):
                         current_player.suspects[1].remove(discard)
                     else:
                         current_player.suspects[2].remove(discard)
+                else:
+                    print("Player " + str(i) + " got it!")
+                    current_player.final_accusation()
+                    done = True
+                    reward = -100
+                    observation = (0,0)
+                    return observation, reward, done, {}
             done = False
             reward = 1
             observation = (self.all_cards.index(rl_discard), player_who_refuted_rl)
@@ -149,7 +156,7 @@ observation = test_env.reset()
 print("Initial observation:", observation)
 
 # Run a few test steps
-for _ in range(100):  # Take 5 steps
+for _ in range(50):  # Take 5 steps
     action = (
         random.randint(0, len(test_env.characters) - 1),  # Random character
         random.randint(0, len(test_env.weapons) - 1),  # Random weapon
