@@ -1,111 +1,175 @@
-import numpy as np
+import gym
 import random
-from tf_agents.environments import py_environment
-from tf_agents.specs import array_spec
-from tf_agents.trajectories import time_step as ts
-
+from gym import spaces
 from Player import Player
 
+class ClueEnv(gym.Env):
+    def __init__(self, num_players=6):
+        super(ClueEnv, self).__init__()
 
-class ClueEnv(py_environment.PyEnvironment):
-    """A TF-Agents compatible environment for Clue."""
-
-    def __init__(self, num_players=3):
-        super().__init__()
-
-        # Game elements
         self.characters = ["Dr. Orchid", "Mr. Green", "Col. Mustard", "Ms. Peacock", "Prof. Plum", "Ms. Scarlett"]
         self.weapons = ["Wrench", "Rope", "Steel Bar", "Knife", "Shovel", "Razor"]
         self.rooms = ["Hall", "Piano Room", "Greenhouse", "Study", "Billiard Room", "Bedroom", "Dining Room", "Library",
                       "Kitchen"]
-        self.solution = None  # Murder case to be solved
+        self.all_cards = self.characters + self.weapons + self.rooms
+
         self.num_players = num_players
-        self.players = []
-        self.current_player_idx = 0  # Track which player's turn it is
 
-        # Define action and observation specs
-        self._action_spec = array_spec.BoundedArraySpec(
-            shape=(3,), dtype=np.int32, minimum=0, maximum=len(self.characters) - 1, name="accusation"
-        )  # Action = (character, weapon, room)
+        self.action_space = spaces.Tuple((
+            spaces.Discrete(len(self.characters)),
+            spaces.Discrete(len(self.weapons)),
+            spaces.Discrete(len(self.rooms)),
+            spaces.Discrete(2)
+        ))
 
-        self._observation_spec = {
-            "suspects": array_spec.BoundedArraySpec(
-                shape=(6,), dtype=np.int32, minimum=0, maximum=1, name="suspects"
-            ),
-            "weapons": array_spec.BoundedArraySpec(
-                shape=(6,), dtype=np.int32, minimum=0, maximum=1, name="weapons"
-            ),
-            "rooms": array_spec.BoundedArraySpec(
-                shape=(9,), dtype=np.int32, minimum=0, maximum=1, name="rooms"
-            ),
-            "hand": array_spec.BoundedArraySpec(
-                shape=(21,), dtype=np.int32, minimum=0, maximum=1, name="hand"
-            )
-        }
+        self.observation_space = spaces.Tuple((
+            spaces.Discrete(len(self.characters) + len(self.weapons) + len(self.rooms)),
+            spaces.Discrete(self.num_players)
+        ))
 
-        self._reset()
+        self.reset()
 
-    def action_spec(self):
-        return self._action_spec
+    def reset(self):
+        self.murder_character = random.choice(self.characters)
+        self.murder_weapon = random.choice(self.weapons)
+        self.murder_room = random.choice(self.rooms)
+        self.murder_cards = [self.murder_character, self.murder_weapon, self.murder_room]
 
-    def observation_spec(self):
-        return self._observation_spec
+        new_characters = [c for c in self.characters if c != self.murder_character]
+        new_weapons = [w for w in self.weapons if w != self.murder_weapon]
+        new_rooms = [r for r in self.rooms if r != self.murder_room]
 
-    def _reset(self):
-        """Resets the game state."""
-        self._deal_cards()
-        self.current_player_idx = 0  # Start from first player
+        pooled_cards = new_characters + new_weapons + new_rooms
 
-        return ts.restart(self._get_observation())
+        random.shuffle(pooled_cards)
 
-    def _step(self, action):
-        """Processes a player's action."""
-        current_player = self.players[self.current_player_idx]
-        accusation = [self.characters[action[0]], self.weapons[action[1]], self.rooms[action[2]]]
+        num_players = self.num_players  # can modify however
+        hands = [pooled_cards[i::num_players] for i in range(num_players)]  # Distribute cards evenly
 
-        if accusation == self.solution:
-            return ts.termination(self._get_observation(), reward=10)  # Correct accusation
+        players = []
+        for i in range(num_players):
+            cur_player_map = dict()
+            for j in range(num_players):
+                if j != i:
+                    cur_player_map[j] = []
+                else:
+                    cur_player_map[j] = hands[i]
 
-        # If incorrect, the player is eliminated
-        return ts.transition(self._get_observation(), reward=-1, discount=0.9)
+            players.append(Player(player_map=cur_player_map, player_id=i))
+            players[i].initialize_suspects()
 
-    def _deal_cards(self):
-        """Distributes cards to players and sets up the game."""
-        all_cards = self.characters + self.weapons + self.rooms
-        random.shuffle(all_cards)
+        self.players = players
+        self.rl_agent = players[0]
+        self.current_player = 0
+        self.turn = 0
+        return (0, 0)  # Placeholder observation
 
-        # Choose a random solution (1 character, 1 weapon, 1 room)
-        self.solution = [random.choice(self.characters), random.choice(self.weapons), random.choice(self.rooms)]
-        for card in self.solution:
-            all_cards.remove(card)
+    def step(self, action):
+        character_idx, weapon_idx, room_idx, is_final = action
 
-        # Distribute remaining cards among players
-        player_map = {i: [] for i in range(self.num_players)}
-        for i, card in enumerate(all_cards):
-            player_map[i % self.num_players].append(card)
+        character = self.characters[character_idx]
+        weapon = self.weapons[weapon_idx]
+        room = self.rooms[room_idx]
 
-        # Create players
-        self.players = [Player(player_id=i, player_map=player_map) for i in range(self.num_players)]
-        for player in self.players:
-            player.initialize_suspects()
+        accusation = [character, weapon, room]
 
-    def _get_observation(self):
-        """Encodes the observation for the current player."""
-        player = self.players[self.current_player_idx]
-        suspect_encoding = np.zeros((3, 6), dtype=np.int32)
+        if is_final:
+            # Final accusation
+            if accusation == self.murder_cards:
+                reward = 100  # Big reward for winning
+                done = True
 
-        # Encode suspects (1 if the player still suspects it, 0 if eliminated)
-        for i, category in enumerate(player.suspects):
-            for suspect in category:
-                idx = self.characters.index(suspect) if i == 0 else self.weapons.index(
-                    suspect) if i == 1 else self.rooms.index(suspect)
-                suspect_encoding[i, idx] = 1
+            else:
+                reward = -100  # Huge penalty for guessing wrong
+                done = True
+            observation = (0,0)
+            return observation, reward, done, {}
 
-        # Encode the player's hand
-        hand_encoding = np.zeros(6, dtype=np.int32)
-        for card in player.player_map[player.player_id]:
-            idx = self.characters.index(card) if card in self.characters else self.weapons.index(
-                card) if card in self.weapons else self.rooms.index(card)
-            hand_encoding[idx] = 1
+        else:
+            # RL_Agent's turn
+            accusation_index = 1
+            rl_discard = ""
+            while accusation_index <= self.num_players and not rl_discard:
 
-        return {"suspects": suspect_encoding, "hand": hand_encoding}
+                rl_discard = self.rl_agent.accuse(self.players[(self.turn + accusation_index) % self.num_players], accusation)
+                accusation_index += 1
+            if rl_discard:
+                player_who_refuted_rl = (self.turn + accusation_index - 1) % self.num_players
+                self.rl_agent.player_map[player_who_refuted_rl].append(rl_discard)
+
+                if rl_discard in self.rl_agent.suspects[0]:
+                    self.rl_agent.suspects[0].remove(rl_discard)
+                elif rl_discard in self.rl_agent.suspects[1]:
+                    self.rl_agent.suspects[1].remove(rl_discard)
+                elif rl_discard in self.rl_agent.suspects[2]:
+                    self.rl_agent.suspects[2].remove(rl_discard)
+
+            for i in range(1,self.num_players):
+                current_player = self.players[i]
+                if len(current_player.suspects[0]) == 1 and len(current_player.suspects[1]) == 1 and len(
+                        current_player.suspects[2]) == 1:
+                    # ya dun lost RL_Agent :(
+                    current_player.final_accusation()
+                    if (current_player.final_accusation() == self.murder_cards):
+                        observation = (0,0)
+                        reward = -100
+                        done = True
+                        return observation, reward, done, {}
+
+                # 'basic' heuristic
+                accusation_cards = [current_player.suspects[0][0], current_player.suspects[1][0], current_player.suspects[2][0]]
+                accusation_index = 1
+                discard = ""
+                while accusation_index <= self.num_players and not discard:
+                    discard = current_player.accuse(self.players[(i + accusation_index) % self.num_players], accusation_cards)
+                    accusation_index += 1
+
+                if discard:
+                    #print(discard)
+                    print("Player " + str(i) + "'s suspects: ")
+                    print(current_player.show_suspect_list())
+                    player_who_refuted = (i + accusation_index - 1) % self.num_players
+                    current_player.player_map[player_who_refuted].append(discard)
+
+                    if discard in current_player.suspects[0]:
+                        current_player.suspects[0].remove(discard)
+                    elif discard in current_player.suspects[1]:
+                        current_player.suspects[1].remove(discard)
+                    else:
+                        current_player.suspects[2].remove(discard)
+                else:
+                    print("Player " + str(i) + " got it!")
+                    current_player.final_accusation()
+                    done = True
+                    reward = -100
+                    observation = (0,0)
+                    return observation, reward, done, {}
+            done = False
+            reward = 1
+            observation = (self.all_cards.index(rl_discard), player_who_refuted_rl)
+            return observation, reward, done, {}
+
+
+test_env = ClueEnv(num_players= 6)
+
+observation = test_env.reset()
+print("Initial observation:", observation)
+
+# Run a few test steps
+for _ in range(50):  # Take 5 steps
+    action = (
+        random.randint(0, len(test_env.characters) - 1),  # Random character
+        random.randint(0, len(test_env.weapons) - 1),  # Random weapon
+        random.randint(0, len(test_env.rooms) - 1),  # Random room
+        0  # Randomly choose whether it's a final accusation
+    )
+
+    obs, reward, done, info = test_env.step(action)
+    print(f"Action: {action}, Observation: {obs}, Reward: {reward}, Done: {done}")
+
+    if done:
+        print("Game Over!")
+        break
+
+
+
