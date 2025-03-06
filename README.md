@@ -23,14 +23,14 @@ Currently, there are no heuristics in the responses to accusations (the first ma
 
 ### RL Agent
 Run `EpsilonDeltaAgent.py` to train the mode
-Completion message: “Training complete. Model saved as trained_model.pkl.”
+Completion message: *Training complete. Model saved as trained_model.pkl.*
 
 Run `EpsilonDeltaAgent.py` to play with agent (One RL Agent, Five regular bots)
 
 
 ### Files
-`EpsilonDeltaAgent.py` is the logic used to train our first RL Clue playing agent 
-`Epsilon_agent_trained.py` is a file where the epsilon greedy agent can be tested
+* `EpsilonDeltaAgent.py` is the logic used to train our first RL Clue playing agent 
+* `Epsilon_agent_trained.py` is a file where the epsilon greedy agent can be tested
 
 
 
