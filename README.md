@@ -6,3 +6,11 @@ i.e objects with "typical" properties like hand, suspect list and a "player map"
 players' information. The game of Clue has essentially been treated as a problem in which players reduce their "suspect list"--
 i.e who could possibly have commited the murder by accusing players according to the rules of Clue. Currently, there are no heuristics 
 in the responses to accusations (the first matching card is discarded)-- although this is a potential area to explore.
+
+To Run:
+pip install gym
+
+RL Agent:
+Run EpsilonDeltaAgent.py to train the model 
+    Completion message: “Training complete. Model saved as trained_model.pkl.”
+Run EpsilonDeltaAgent.py to play with agent (One RL Agent, Five regular bots) 
