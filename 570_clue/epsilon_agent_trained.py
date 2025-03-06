@@ -43,8 +43,10 @@ for _ in range(100):
 
         obs, reward, done, info = env.step(action)
         total_reward += reward
+    if env.won:
+        num_wins += 1
 
-
+print(num_wins)
 
     #print(f"New observation: {obs}, Reward: {reward}, Done: {done}")
 

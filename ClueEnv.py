@@ -35,6 +35,7 @@ class ClueEnv(gym.Env):
         self.murder_room = random.choice(self.rooms)
         self.murder_cards = [self.murder_character, self.murder_weapon, self.murder_room]
         self.game_over = False
+        self.won = False
         print("Murder scenario: " + self.murder_character + " with the " + self.murder_weapon + " in the " + self.murder_room)
 
         new_characters = [c for c in self.characters if c != self.murder_character]
@@ -88,6 +89,7 @@ class ClueEnv(gym.Env):
             if accusation == self.murder_cards:
                 reward = 50  # Big reward for winning
                 self.game_over = True
+                self.won = True
                 done = True
 
 
