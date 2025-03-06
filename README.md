@@ -22,9 +22,8 @@ The game of Clue has  been treated as a problem in which players reduce their "s
 Currently, there are no heuristics in the responses to accusations (the first matching card is discarded)-- although this is a potential area to explore.
 
 ### RL Agent
-* Run `EpsilonDeltaAgent.py` to train the model. Following message will print upon success: *Training complete. Model saved as trained_model.pkl.* 
-
-Run `EpsilonDeltaAgent.py` to play with agent (One RL Agent, Five regular bots)
+* Run `EpsilonDeltaAgent.py` to train the model. This will print upon success: *Training complete. Model saved as trained_model.pkl.* 
+* Run `EpsilonDeltaAgent.py` to play with agent (One RL Agent, Five regular bots)
 
 
 ### Files
