@@ -13,7 +13,7 @@ pip install gym
 
 ## Usage
 
-The file `clue_testbed.py` is the main file used to demo all agents. This file has an ** Deduction Agent ** which uses an advanced Clue strategy to play against ** Regular Bot ** which uses the standard "elimination" strategy (Hansen et al.). 
+The file `clue_testbed.py` is the main file used to demo all agents. This file has an **Deduction Agent** which uses an advanced Clue strategy to play against **Regular Bot** which uses the standard "elimination" strategy (Hansen et al.). 
 
 The game is modeled using 'Players' which are objects with typical properties (e.g. hand, suspect list, a player map). The player map is a dictionary representing other players' information. 
 
