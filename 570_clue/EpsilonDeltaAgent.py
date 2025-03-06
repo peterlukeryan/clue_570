@@ -1,8 +1,13 @@
 import gym
 import numpy as np
+import pickle
 
 from ClueEnv import ClueEnv
 from collections import defaultdict
+
+def default_q_values():
+    return {}
+
 
 class EpsilonDeltaAgent:
     def __init__(
@@ -15,7 +20,9 @@ class EpsilonDeltaAgent:
             discount_factor: float = 0.95,
     ):
         self.env = env
-        self.q_values = defaultdict(lambda: {})
+
+
+        self.q_values = defaultdict(default_q_values)
 
         self.lr = learning_rate
         self.discount_factor = discount_factor
@@ -108,23 +115,27 @@ for episode in tqdm(range(n_episodes)):
 
     agent.decay_epsilon()
 
+with open("trained_model.pkl", "wb") as f:
+    pickle.dump(dict(agent.q_values), f)  # Convert defaultdict -> dict
 
+
+print("Training complete. Model saved as trained_model.pkl.")
 
 agent.epsilon = 0.0
 
 
-obs, info = env.reset()
-done = False
-total_reward = 0
-
-while not done:
-    action = agent.get_action(obs)  # Agent picks the best action
-    print(f"Agent takes action: {action}")
-
-    obs, reward, done, info = env.step(action)
-    total_reward += reward
-    print(f"New observation: {obs}, Reward: {reward}, Done: {done}")
-print(f"Game over! Total reward: {total_reward}")
+# obs, info = env.reset()
+# done = False
+# total_reward = 0
+#
+# while not done:
+#     action = agent.get_action(obs)  # Agent picks the best action
+#     print(f"Agent takes action: {action}")
+#
+#     obs, reward, done, info = env.step(action)
+#     total_reward += reward
+#     print(f"New observation: {obs}, Reward: {reward}, Done: {done}")
+# print(f"Game over! Total reward: {total_reward}")
 
 
 
