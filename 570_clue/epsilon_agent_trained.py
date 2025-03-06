@@ -46,7 +46,7 @@ for _ in range(100):
     if env.won:
         num_wins += 1
 
-print(num_wins)
+print("Agent won: " + str(num_wins) +" times out of 100")
 
     #print(f"New observation: {obs}, Reward: {reward}, Done: {done}")
 
