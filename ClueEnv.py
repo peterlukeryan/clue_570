@@ -1,5 +1,7 @@
 import gym
 import random
+
+import numpy as np
 from gym import spaces
 from Player import Player
 
@@ -22,12 +24,63 @@ class ClueEnv(gym.Env):
             spaces.Discrete(2)
         ))
 
-        self.observation_space = spaces.Tuple((
-            spaces.Discrete(len(self.characters) + len(self.weapons) + len(self.rooms)),
-            spaces.Discrete(self.num_players)
-        ))
+        self.observation_space = spaces.Box(
+            low=0, high=1, shape=(len(self.all_cards) + self.num_players + len(self.all_cards),), dtype=np.int32
+        )
 
         self.reset()
+
+    def encode_observation(self, player, discard, player_id):
+        # One-hot encode the discarded card
+        discard_vector = np.zeros(len(self.all_cards))
+        if discard in self.all_cards:
+            discard_vector[self.all_cards.index(discard)] = 1
+
+        # One-hot encode the player who refuted
+        player_vector = np.zeros(self.num_players)
+        player_vector[player_id] = 1
+
+        # Flatten player map (assumes 1 if a card is known to be owned)
+        player_map_vector = np.zeros((self.num_players, len(self.all_cards)))
+        for p in range(self.num_players):
+            for card in player.player_map[p]:
+                player_map_vector[p, self.all_cards.index(card)] = 1
+        player_map_vector = player_map_vector.flatten()  # Flatten into 1D array
+
+        # Encode suspect list
+        suspect_vector = np.zeros(len(self.all_cards))
+        for i, category in enumerate(self.rl_agent.suspects):
+            for suspect in category:
+                suspect_vector[self.all_cards.index(suspect)] = 1
+
+        return np.concatenate([discard_vector, player_vector, player_map_vector, suspect_vector])
+
+    def blank_observation(self):
+        num_cards = len(self.all_cards)
+
+        # No discarded card
+        discard_vector = np.zeros(num_cards)
+
+        # No player refuted
+        player_vector = np.zeros(self.num_players)
+
+        # Initialize an empty player_map representation
+        player_map_vector = np.zeros((self.num_players, num_cards))
+
+        # Populate the RL agent’s player map
+        for p in range(self.num_players):
+            for card in self.rl_agent.player_map[p]:
+                player_map_vector[p, self.all_cards.index(card)] = 1
+        player_map_vector = player_map_vector.flatten()
+
+        # Encode suspect list
+        suspect_vector = np.zeros(num_cards)
+        for category in self.rl_agent.suspects:
+            for suspect in category:
+                suspect_vector[self.all_cards.index(suspect)] = 1
+
+        # Concatenate all parts into a single observation vector
+        return np.concatenate([discard_vector, player_vector, player_map_vector, suspect_vector])
 
     def reset(self):
         self.murder_character = random.choice(self.characters)
@@ -98,7 +151,7 @@ class ClueEnv(gym.Env):
                 self.game_over = True
                 done = True
 
-            observation = (0,0)
+            observation = self.blank_observation()
             return observation, reward, done, {}
 
         else:
@@ -129,7 +182,7 @@ class ClueEnv(gym.Env):
                     # ya dun lost RL_Agent :(
                     current_player.final_accusation()
                     if (current_player.final_accusation() == self.murder_cards):
-                        observation = (0,0)
+                        observation = self.blank_observation()
                         reward = -100
                         done = True
 
@@ -166,37 +219,35 @@ class ClueEnv(gym.Env):
                     reward = -100
                     self.game_over = True
 
-                    observation = (0,0)
+                    observation = self.blank_observation()
                     return observation, reward, done, {}
             done = False
             reward = 5
-            if (rl_discard):
-                observation = (self.all_cards.index(rl_discard), player_who_refuted_rl)
-            else:
-                observation = (42, 42)
+
+            observation = self.encode_observation(self.rl_agent, rl_discard, player_who_refuted_rl)
             return observation, reward, done, {}
 
 
-# test_env = ClueEnv(num_players= 6)
-#
-# observation = test_env.reset()
-# print("Initial observation:", observation)
-#
-# # Run a few test steps
-# for _ in range(100):  # Take 5 steps
-#     action = (
-#         random.randint(0, len(test_env.characters) - 1),  # Random character
-#         random.randint(0, len(test_env.weapons) - 1),  # Random weapon
-#         random.randint(0, len(test_env.rooms) - 1),  # Random room
-#         random.randint(0,1) # Randomly choose whether it's a final accusation
-#     )
-#
-#     obs, reward, done, info = test_env.step(action)
-#     print(f"Action: {action}, Observation: {obs}, Reward: {reward}, Done: {done}")
-#
-#     if done:
-#         print("Game Over!")
-#         break
-#
+test_env = ClueEnv(num_players= 6)
+
+observation = test_env.reset()
+print("Initial observation:", observation)
+
+# Run a few test steps
+for _ in range(100):  # Take 5 steps
+    action = (
+        random.randint(0, len(test_env.characters) - 1),  # Random character
+        random.randint(0, len(test_env.weapons) - 1),  # Random weapon
+        random.randint(0, len(test_env.rooms) - 1),  # Random room
+        random.randint(0,1) # Randomly choose whether it's a final accusation
+    )
+
+    obs, reward, done, info = test_env.step(action)
+    print(f"Action: {action}, Observation: {obs}, Reward: {reward}, Done: {done}")
+
+    if done:
+        print("Game Over!")
+        break
+
 
 
