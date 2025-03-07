@@ -89,7 +89,7 @@ class ClueEnv(gym.Env):
         self.murder_cards = [self.murder_character, self.murder_weapon, self.murder_room]
         self.game_over = False
         self.won = False
-        print("Murder scenario: " + self.murder_character + " with the " + self.murder_weapon + " in the " + self.murder_room)
+        # print("Murder scenario: " + self.murder_character + " with the " + self.murder_weapon + " in the " + self.murder_room)
 
         new_characters = [c for c in self.characters if c != self.murder_character]
         new_weapons = [w for w in self.weapons if w != self.murder_weapon]
@@ -118,11 +118,11 @@ class ClueEnv(gym.Env):
         self.rl_agent = players[0]
         self.current_player = 0
         self.turn = 0
-        print("RL agent's info: ")
-        print(self.rl_agent.player_map)
-        print("Suspects")
-        print(self.rl_agent.show_suspect_list())
-        return (0, 0)  # Placeholder observation
+        # print("RL agent's info: ")
+        # print(self.rl_agent.player_map)
+        # print("Suspects")
+        # print(self.rl_agent.show_suspect_list())
+        return self.blank_observation();
 
     def step(self, action):
         character_idx, weapon_idx, room_idx, is_final = action
@@ -132,12 +132,12 @@ class ClueEnv(gym.Env):
         room = self.rooms[room_idx]
 
         accusation = [character, weapon, room]
-        print("Agent's accusation: ")
-        print(accusation)
+        # print("Agent's accusation: ")
+        # print(accusation)
 
         if is_final:
-            print("RL_agent goes for it all. ")
-            print(accusation)
+            # print("RL_agent goes for it all. ")
+            # print(accusation)
 
             if accusation == self.murder_cards:
                 reward = 50  # Big reward for winning
@@ -161,8 +161,8 @@ class ClueEnv(gym.Env):
             while accusation_index <= self.num_players and not rl_discard:
 
                 rl_discard = self.rl_agent.accuse(self.players[(self.turn + accusation_index) % self.num_players], accusation)
-                print("Refutation: ")
-                print(rl_discard)
+                # print("Refutation: ")
+                # print(rl_discard)
                 accusation_index += 1
             if rl_discard:
                 player_who_refuted_rl = (self.turn + accusation_index - 1) % self.num_players
@@ -190,8 +190,8 @@ class ClueEnv(gym.Env):
 
                 # 'basic' heuristic
                 accusation_cards = [current_player.suspects[0][0], current_player.suspects[1][0], current_player.suspects[2][0]]
-                print("Regular bot " + str(i) + " 's accusation")
-                print(accusation_cards)
+                # print("Regular bot " + str(i) + " 's accusation")
+                # print(accusation_cards)
                 accusation_index = 1
                 discard = ""
                 while accusation_index <= self.num_players and not discard:
@@ -199,8 +199,6 @@ class ClueEnv(gym.Env):
                     accusation_index += 1
 
                 if discard:
-                    print("Refutation: ")
-                    print(discard)
 
                     player_who_refuted = (i + accusation_index - 1) % self.num_players
                     current_player.player_map[player_who_refuted].append(discard)
@@ -212,8 +210,7 @@ class ClueEnv(gym.Env):
                     else:
                         current_player.suspects[2].remove(discard)
                 else:
-                    print("Regular bot's got it: ")
-                    print(current_player.final_accusation())
+
                     current_player.final_accusation()
                     done = True
                     reward = -100
@@ -224,30 +221,34 @@ class ClueEnv(gym.Env):
             done = False
             reward = 5
 
-            observation = self.encode_observation(self.rl_agent, rl_discard, player_who_refuted_rl)
+            if rl_discard:
+                observation = self.encode_observation(self.rl_agent, rl_discard, player_who_refuted_rl)
+            else:
+                observation = self.blank_observation()
+
             return observation, reward, done, {}
 
 
-test_env = ClueEnv(num_players= 6)
+#test_env = ClueEnv(num_players= 6)
 
-observation = test_env.reset()
-print("Initial observation:", observation)
-
-# Run a few test steps
-for _ in range(100):  # Take 5 steps
-    action = (
-        random.randint(0, len(test_env.characters) - 1),  # Random character
-        random.randint(0, len(test_env.weapons) - 1),  # Random weapon
-        random.randint(0, len(test_env.rooms) - 1),  # Random room
-        random.randint(0,1) # Randomly choose whether it's a final accusation
-    )
-
-    obs, reward, done, info = test_env.step(action)
-    print(f"Action: {action}, Observation: {obs}, Reward: {reward}, Done: {done}")
-
-    if done:
-        print("Game Over!")
-        break
-
-
-
+# observation = test_env.reset()
+# print("Initial observation:", observation)
+#
+# # Run a few test steps
+# for _ in range(100):  # Take 5 steps
+#     action = (
+#         random.randint(0, len(test_env.characters) - 1),  # Random character
+#         random.randint(0, len(test_env.weapons) - 1),  # Random weapon
+#         random.randint(0, len(test_env.rooms) - 1),  # Random room
+#         random.randint(0,1) # Randomly choose whether it's a final accusation
+#     )
+#
+#     obs, reward, done, info = test_env.step(action)
+#     print(f"Action: {action}, Observation: {obs}, Reward: {reward}, Done: {done}")
+#
+#     if done:
+#         print("Game Over!")
+#         break
+#
+#
+#

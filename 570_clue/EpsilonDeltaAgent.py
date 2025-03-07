@@ -33,37 +33,44 @@ class EpsilonDeltaAgent:
 
         self.training_error = []
 
-    def get_action(self, obs: tuple[int, int]) -> tuple[int, int, int, int]:
+    def get_action(self, obs: np.ndarray) -> tuple[int, int, int, int]:
         """
         Returns the best action with probability (1 - epsilon),
         otherwise a random action with probability epsilon.
         """
+        print("Obs: ")
+        print(obs)
+        obs_key = tuple(obs)  # Convert array to tuple for hashing
+
         if np.random.random() < self.epsilon:
             return self.env.action_space.sample()
         else:
-            # Ensure we return a tuple, not an int
-            if self.q_values[obs]:  # Check if Q-values exist for this state
-                return max(self.q_values[obs], key=self.q_values[obs].get)
+            if self.q_values[obs_key]:  # Check if Q-values exist for this state
+                return max(self.q_values[obs_key], key=self.q_values[obs_key].get)
             else:
-                return self.env.action_space.sample()  # If no known values, explore
+                return self.env.action_space.sample()
 
     def update(
             self,
-            obs: tuple[int, int],
+            obs: np.ndarray,
             action: tuple[int, int, int, int],
             reward: float,
             terminated: bool,
-            next_obs: tuple[int, int],
+            next_obs: np.ndarray,
     ):
         """Updates the Q-value of an action."""
-        if action not in self.q_values[obs]:
-            self.q_values[obs][action] = 0.0  # Initialize if not present
-        future_q_value = (not terminated) * max(self.q_values[next_obs].values(), default=0.0)
+        obs_key = tuple(obs)  # Convert array to tuple for hashing
+        next_obs_key = tuple(next_obs)
+
+        if action not in self.q_values[obs_key]:
+            self.q_values[obs_key][action] = 0.0  # Initialize if not present
+
+        future_q_value = (not terminated) * max(self.q_values[next_obs_key].values(), default=0.0)
         temporal_difference = (
-                reward + self.discount_factor * future_q_value - self.q_values[obs][action]
+                reward + self.discount_factor * future_q_value - self.q_values[obs_key][action]
         )
 
-        self.q_values[obs][action] += self.lr * temporal_difference
+        self.q_values[obs_key][action] += self.lr * temporal_difference
         self.training_error.append(temporal_difference)
 
 
@@ -92,50 +99,33 @@ env=env,
 
 from tqdm import tqdm
 
-current_obs = (0,0)
+current_obs = np.zeros(env.observation_space.shape)  # Initialize as a zero vector
+print("First obs: ")
+print(current_obs)
 
 for episode in tqdm(range(n_episodes)):
     terminated = False
     if env.game_over:
-        obs, info = env.reset()
-        current_obs = obs
+        obs = env.reset()
+        current_obs = obs  # Ensure obs is an array
 
-
-    # play one episode
     while not terminated:
         action = agent.get_action(current_obs)
         obs, reward, done, info = env.step(action)
 
-        # update the agent
         agent.update(current_obs, action, reward, done, obs)
 
-        # update if the environment is done and the current obs
         terminated = done
-        current_obs = obs
+        current_obs = obs  # Update to new observation
 
     agent.decay_epsilon()
 
 with open("trained_model.pkl", "wb") as f:
-    pickle.dump(dict(agent.q_values), f)  # Convert defaultdict -> dict
-
+    pickle.dump(dict(agent.q_values), f)  # Convert defaultdict to dict
 
 print("Training complete. Model saved as trained_model.pkl.")
 
 agent.epsilon = 0.0
-
-
-# obs, info = env.reset()
-# done = False
-# total_reward = 0
-#
-# while not done:
-#     action = agent.get_action(obs)  # Agent picks the best action
-#     print(f"Agent takes action: {action}")
-#
-#     obs, reward, done, info = env.step(action)
-#     total_reward += reward
-#     print(f"New observation: {obs}, Reward: {reward}, Done: {done}")
-# print(f"Game over! Total reward: {total_reward}")
 
 
 
