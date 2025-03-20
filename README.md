@@ -1,6 +1,7 @@
 # Clue Bluffing Study
 
-Project for CSC 570-- Rodrigo Canaan-- Cal Poly
+Project for CSC 570-- Rodrigo Canaan-- Cal Poly. Special thanks to OpenAI's Gymnasium docs for tutorials on implementing
+RL agents, as well as David and Kyle Hansen for their work on the theoritcal soundness of bluffing in Clue.
 This repository contains a Clue simulation. We employ reinforcement learning techniques to analyze the strategy of bluffing. 
 
 
