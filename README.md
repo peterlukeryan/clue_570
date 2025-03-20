@@ -1,5 +1,6 @@
 # Clue Bluffing Study
 
+Project for CSC 570-- Rodrigo Canaan-- Cal Poly
 This repository contains a Clue simulation. We employ reinforcement learning techniques to analyze the strategy of bluffing. 
 
 
