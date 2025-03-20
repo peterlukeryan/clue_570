@@ -24,6 +24,9 @@ The game of Clue has  been treated as a problem in which players reduce their "s
 Currently, there are no heuristics in the responses to accusations (the first matching card is discarded)-- although this is a potential area to explore.
 
 ### RL Agent
+WARNING the agent trained below is massive. Training takes upwards of two hours on a 2017 Macbook Pro, and the downloaded Q table will drain system
+resources. If you would like to run a less demanding model, we suggest adjusting the num_episodes hyperparameter to 100_000. However, since 1_000_000
+was used in the report, I have left it as is.
 * Run `EpsilonDeltaAgent.py` to train the model. This will print upon success: *Training complete. Model saved as trained_model.pkl.* 
 * Run `EpsilonDeltaAgent.py` to play with agent (One RL Agent, Five regular bots)
 
@@ -31,6 +34,10 @@ Currently, there are no heuristics in the responses to accusations (the first ma
 ### Files
 * `EpsilonDeltaAgent.py` is the logic used to train our first RL Clue playing agent 
 * `Epsilon_agent_trained.py` is a file where the epsilon greedy agent can be tested
+
+### Replicating results
+* Our main result for the deduction bot is built into clue_testbed.py. A printout is executed representing a dictionary in which
+  the keys are the player index and the values are the win counts. Player 0 represents the deduction agent.
 
 
 
